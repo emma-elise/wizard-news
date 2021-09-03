@@ -2,6 +2,7 @@ const express = require("express");
 const morgan = require("morgan");
 const postBank = require("./postBank");
 const path = require("path");
+const PORT = 3000;
 
 const app = express();
 
@@ -43,6 +44,7 @@ app.get("/", (req, res) => {
 app.get("/posts/:id", (req, res) => {
   const id = req.params.id;
   const post = postBank.find(id);
+  if (!post.id) throw new Error("Post not found");
   const html = `<!DOCTYPE HTML>
     <html>
     <head>
@@ -70,6 +72,24 @@ app.get("/posts/:id", (req, res) => {
 
 app.get("/users/:name", (req, res) => console.log(req.params.name));
 
-const PORT = 3000;
+app.use((err, req, res, next) => {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Wizard News</title>
+      <link rel="stylesheet" href="/style.css" />
+    </head>
+    <body>
+      <header><img src="/logo.png"/>Wizard News</header>
+      <div class="not-found">
+        <p>Accio Page! 🧙‍♀️ ... Oh, it's not here.</p>
+        <img src="https://c.tenor.com/2lCoAAOAvUsAAAAC/dumbledore-frustrated.gif"/>
+      </div>
+    </body>
+    </html>`;
+  console.error(err.stack);
+  res.status(404).send(html);
+});
 
 app.listen(PORT, () => console.log(`App listening in port ${PORT}`));
