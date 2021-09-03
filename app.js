@@ -1,12 +1,12 @@
 const express = require("express");
 const morgan = require("morgan");
 const postBank = require("./postBank");
+const path = require("path");
 
 const app = express();
 
 app.use(morgan("dev"));
-
-// app.get("/", (req, res) => res.send("Hello World!"));
+app.use(express.static("public"));
 
 app.get("/", (req, res) => {
   const posts = postBank.list();
@@ -14,9 +14,9 @@ app.get("/", (req, res) => {
     <html>
     <head>
       <title>Wizard News</title>
+      <link rel="stylesheet" href="/style.css"/>
     </head>
     <body>
-      <p>Above post test</p>
       <div class="news-list">
       <header><img src="/logo.png"/>Wizard News</header>
       ${posts
@@ -24,7 +24,8 @@ app.get("/", (req, res) => {
           (post) => `
         <div class='news-item'>
           <p>
-            <span class="news-position">${post.id}. ▲</span>${post.title}
+            <span class="news-position">${post.id}. ▲</span>
+            <a href="/posts/${post.id}">${post.title}</a>
             <small>(by ${post.name})</small>
           </p>
           <small class="news-info">
@@ -34,26 +35,41 @@ app.get("/", (req, res) => {
         )
         .join("")}
     </div>  
-      <p>Below post test</p>
     </body>
     </html>`;
   res.send(html);
 });
 
-const PORT = 3000;
+app.get("/posts/:id", (req, res) => {
+  const id = req.params.id;
+  const post = postBank.find(id);
+  const html = `<!DOCTYPE HTML>
+    <html>
+    <head>
+      <title>Wizard News</title>
+      <link rel="stylesheet" href="/style.css"/>
+    </head>
+    <body>
+      <div class="news-list">
+      <header><img src="/logo.png"/>Wizard News</header>
+      <div class='news-item'>
+        <p>
+          <span class="news-position">${post.id}. ▲</span>${post.title}
+          <small>(by ${post.name})</small>
+          <div>${post.content}</div>
+        </p>
+        <small class="news-info">
+          ${post.upvotes} upvotes | ${post.date}
+        </small>
+      </div>
+    </body>
+    </html>`;
 
-app.listen(PORT, () => {
-  console.log(`App listening in port ${PORT}`);
+  res.send(html);
 });
 
-// ${posts.map(post => { `<li>${/* */}</li>`; )}
+app.get("/users/:name", (req, res) => console.log(req.params.name));
 
-// { post.list: list, post.find: find }
-console.log("hi");
+const PORT = 3000;
 
-// <ul>
-//   $
-//   {posts.map((post) => {
-//     `<li>${post.data}</li>`;
-//   })}
-// </ul>;
+app.listen(PORT, () => console.log(`App listening in port ${PORT}`));
